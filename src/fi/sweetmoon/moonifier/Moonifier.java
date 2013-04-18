@@ -29,11 +29,12 @@ public class Moonifier extends JavaPlugin implements Listener {
 		this.saveDefaultConfig();
 		this.config = this.getConfig();
 		getServer().getPluginManager().registerEvents(this, this);
-		Moonifier.LOW_GRAVITY_WORLD = config.getString("moonworld");
-		Moonifier.WORLD_BELOW = config.getString("dropworld");
+		LOW_GRAVITY_WORLD = config.getString("moonworld");
+		WORLD_BELOW = config.getString("dropworld");
 		
 		/*
-		 * A hack to handle removal of potion bubbles without removing the actual effect
+		 * No idea how ((CraftLivingEntity) player).getHandle().getDataWatcher().watch(8, Integer.valueOf(0)); actually works.
+		 * It's a hack to remove potion bubbles from players in "Moon"
 		 */
 		plugin.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
 			public void run() {
@@ -56,10 +57,13 @@ public class Moonifier extends JavaPlugin implements Listener {
 	
 	@EventHandler(ignoreCancelled = true)
 	public void onPlayerWorldChange(PlayerChangedWorldEvent e) {
+		
+		// Add potion effect when player comes to "Moon"
 		if (e.getPlayer().getWorld().getName().equals(LOW_GRAVITY_WORLD)) {
 			e.getPlayer().addPotionEffect(potef, true);
 		}
 		
+		// Remove potion effect when player is not on "Moon"
 		if (e.getFrom().getName().equals(LOW_GRAVITY_WORLD)) {
 			e.getPlayer().removePotionEffect(PotionEffectType.JUMP);
 		}
@@ -69,6 +73,10 @@ public class Moonifier extends JavaPlugin implements Listener {
 	public void onDeath(PlayerRespawnEvent e) {
 		final Player pl = e.getPlayer();
 		
+		/*
+		 * Player doesn't actually respawn when this event is fired (Player object isn't created)
+		 * This hack is a necessary workaround to apply the potion effect (1 tick wait after respawn event)
+		 */
 		if (e.getPlayer().getWorld().getName().equals(LOW_GRAVITY_WORLD)) {
 		    plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
 		        public void run() {             
@@ -87,6 +95,8 @@ public class Moonifier extends JavaPlugin implements Listener {
 		}
 		
 		Player pl = (Player) e.getEntity();
+		
+		// Change player world to the world below if in void in the world above
 		if (e.getCause() == DamageCause.VOID) {
 			pl.teleport(new Location(getServer().getWorld(WORLD_BELOW), 
 					pl.getLocation().getX(), 
@@ -96,7 +106,8 @@ public class Moonifier extends JavaPlugin implements Listener {
 					pl.getLocation().getPitch()));
 			e.setDamage(0);
 		}
-	
+		
+		// Make fall damage scale correctly
 		if (e.getDamage() >= 4 && e.getCause() == DamageCause.FALL) {
 			e.setDamage((e.getDamage() - 4));
 		} else {
