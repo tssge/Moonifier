@@ -110,10 +110,11 @@ public class Moonifier extends JavaPlugin implements Listener {
 		Player pl = (Player) e.getEntity();
 		
 		if(e.getCause() == DamageCause.VOID) {
-			if(voidCounter.get(pl.getName().toLowerCase()).equals(50)) {
+			// If player is 50 blocks below the void, tp them to the world below
+			if(voidCounter.get(pl.getName().toLowerCase()).equals(25)) {
 				pl.teleport(new Location(getServer().getWorld(WORLD_BELOW), 
 						pl.getLocation().getX(), 
-						400, 
+						375, 
 						pl.getLocation().getZ(), 
 						pl.getLocation().getYaw(), 
 						pl.getLocation().getPitch()));
