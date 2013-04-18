@@ -1,4 +1,4 @@
-# World with moon gravity
+# World with low gravity
 moonworld: world_the_end
 # World to drop to from moonworld
 dropworld: world

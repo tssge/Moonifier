@@ -1,7 +1,5 @@
 package fi.sweetmoon.moonifier;
 
-//import java.util.logging.Logger;
-
 import org.bukkit.craftbukkit.v1_5_R2.entity.CraftLivingEntity;
 
 import org.bukkit.Location;
@@ -19,12 +17,11 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 public class Moonifier extends JavaPlugin implements Listener {
-	//private Logger log = Logger.getLogger("Moonifier");
 	public Moonifier plugin;
 	public FileConfiguration config;
 	private static PotionEffect potef = new PotionEffect(PotionEffectType.JUMP, Integer.MAX_VALUE, 2);
-	private static String world;
-	private static String dropworld1;
+	private static String LOW_GRAVITY_WORLD;
+	private static String WORLD_BELOW;
 	
 	@Override
 	public void onEnable() {
@@ -32,13 +29,16 @@ public class Moonifier extends JavaPlugin implements Listener {
 		this.saveDefaultConfig();
 		this.config = this.getConfig();
 		getServer().getPluginManager().registerEvents(this, this);
-		Moonifier.world = config.getString("moonworld");
-		Moonifier.dropworld1 = config.getString("dropworld");
+		Moonifier.LOW_GRAVITY_WORLD = config.getString("moonworld");
+		Moonifier.WORLD_BELOW = config.getString("dropworld");
 		
+		/*
+		 * A hack to handle removal of potion bubbles without removing the actual effect
+		 */
 		plugin.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
 			public void run() {
 		      for (Player player : Moonifier.this.getServer().getOnlinePlayers())
-		    	  if (player.getWorld().getName().equals(world)) {
+		    	  if (player.getWorld().getName().equals(LOW_GRAVITY_WORLD)) {
 		          	((CraftLivingEntity) player).getHandle().getDataWatcher().watch(8, Integer.valueOf(0));
 		    	  }
 			}
@@ -47,35 +47,29 @@ public class Moonifier extends JavaPlugin implements Listener {
 	
 	@EventHandler(ignoreCancelled = true)
 	public void onPlayerJoin(PlayerJoinEvent e) {
-		//log.info("World is: " + e.getPlayer().getWorld().getName() + " and config world is: " + config.getString("world") + " and player is: " + e.getPlayer().getName());
 		Player p = e.getPlayer();
 		
-		if (p.getWorld().getName().equals(world)) {
-			//log.info("Passed the loginevent if loop.");
+		if (p.getWorld().getName().equals(LOW_GRAVITY_WORLD)) {
 			p.addPotionEffect(potef, true);
 		}
 	}
 	
 	@EventHandler(ignoreCancelled = true)
 	public void onPlayerWorldChange(PlayerChangedWorldEvent e) {
-		//log.info("World is: " + e.getPlayer().getWorld().getName() + " worldFrom is: " + e.getFrom().getName() + " and config world is: " + config.getString("world") + " and player is: " + e.getPlayer().getName());
-		if (e.getPlayer().getWorld().getName().equals(world)) {
-			//log.info("Passed the playerchangedworldevent if loop.");
+		if (e.getPlayer().getWorld().getName().equals(LOW_GRAVITY_WORLD)) {
 			e.getPlayer().addPotionEffect(potef, true);
 		}
 		
-		if (e.getFrom().getName().equals(world)) {
-			//log.info("Passed the playerchangedworldevent if loop for removing potion.");
+		if (e.getFrom().getName().equals(LOW_GRAVITY_WORLD)) {
 			e.getPlayer().removePotionEffect(PotionEffectType.JUMP);
 		}
 	}
 	
 	@EventHandler(ignoreCancelled = true)
 	public void onDeath(PlayerRespawnEvent e) {
-		//log.info("PlayerRespawnEvent.");
 		final Player pl = e.getPlayer();
 		
-		if (e.getPlayer().getWorld().getName().equals(world)) {
+		if (e.getPlayer().getWorld().getName().equals(LOW_GRAVITY_WORLD)) {
 		    plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
 		        public void run() {             
 		            pl.addPotionEffect(potef, true);
@@ -88,14 +82,13 @@ public class Moonifier extends JavaPlugin implements Listener {
 	public void onEntityDamageEvent(EntityDamageEvent e) {
 		if (!(e.getEntity() instanceof Player)) {
 			return;
-		} else if (!(e.getEntity().getWorld().getName().equals(world))) {
+		} else if (!(e.getEntity().getWorld().getName().equals(LOW_GRAVITY_WORLD))) {
 			return;
 		}
 		
 		Player pl = (Player) e.getEntity();
-		//log.info("Entity: " + ((Player) e.getEntity()).getName() + " Damage cause: " + e.getCause().toString());
 		if (e.getCause() == DamageCause.VOID) {
-			pl.teleport(new Location(getServer().getWorld(dropworld1), 
+			pl.teleport(new Location(getServer().getWorld(WORLD_BELOW), 
 					pl.getLocation().getX(), 
 					400, 
 					pl.getLocation().getZ(), 
