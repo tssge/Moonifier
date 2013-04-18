@@ -13,6 +13,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
@@ -56,6 +57,15 @@ public class Moonifier extends JavaPlugin implements Listener {
 		if (p.getWorld().getName().equals(LOW_GRAVITY_WORLD)) {
 			p.addPotionEffect(potef, true);
 		}
+		
+		// We have to put player into voidCounter to avoid null stacktrace on the if clause in entityDamageEvent
+		voidCounter.put(p.getName().toLowerCase(), 0);
+	}
+	
+	@EventHandler(ignoreCancelled = true)
+	public void onPlayerQuit(PlayerQuitEvent e) {
+		// Remove player so we don't cause memory leak or anything nasty
+		voidCounter.remove(e.getPlayer().getName().toLowerCase());
 	}
 	
 	@EventHandler(ignoreCancelled = true)
@@ -98,8 +108,9 @@ public class Moonifier extends JavaPlugin implements Listener {
 		}
 		
 		Player pl = (Player) e.getEntity();
+		
 		if(e.getCause() == DamageCause.VOID) {
-			if(voidCounter.get(pl.getName().toLowerCase()) == 200) {
+			if(voidCounter.get(pl.getName().toLowerCase()).equals(50)) {
 				pl.teleport(new Location(getServer().getWorld(WORLD_BELOW), 
 						pl.getLocation().getX(), 
 						400, 
@@ -107,10 +118,10 @@ public class Moonifier extends JavaPlugin implements Listener {
 						pl.getLocation().getYaw(), 
 						pl.getLocation().getPitch()));
 				voidCounter.put(pl.getName().toLowerCase(), 0);
-				e.setDamage(0);
+				e.setCancelled(true);
 			} else {
 				voidCounter.put(pl.getName().toLowerCase(), 1+voidCounter.get(pl.getName().toLowerCase()));
-				e.setDamage(0);
+				e.setCancelled(true);
 			}
 		} 
 			
