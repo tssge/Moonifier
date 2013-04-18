@@ -1,5 +1,7 @@
 package fi.sweetmoon.moonifier;
 
+import java.util.HashMap;
+
 import org.bukkit.craftbukkit.v1_5_R2.entity.CraftLivingEntity;
 
 import org.bukkit.Location;
@@ -22,6 +24,7 @@ public class Moonifier extends JavaPlugin implements Listener {
 	private static PotionEffect potef = new PotionEffect(PotionEffectType.JUMP, Integer.MAX_VALUE, 2);
 	private static String LOW_GRAVITY_WORLD;
 	private static String WORLD_BELOW;
+	HashMap<String,Integer> voidCounter = new HashMap<String,Integer>();
 	
 	@Override
 	public void onEnable() {
@@ -95,17 +98,22 @@ public class Moonifier extends JavaPlugin implements Listener {
 		}
 		
 		Player pl = (Player) e.getEntity();
-		
-		// Change player world to the world below if in void in the world above
-		if (e.getCause() == DamageCause.VOID) {
-			pl.teleport(new Location(getServer().getWorld(WORLD_BELOW), 
-					pl.getLocation().getX(), 
-					400, 
-					pl.getLocation().getZ(), 
-					pl.getLocation().getYaw(), 
-					pl.getLocation().getPitch()));
-			e.setDamage(0);
-		}
+		if(e.getCause() == DamageCause.VOID) {
+			if(voidCounter.get(pl.getName().toLowerCase()) == 200) {
+				pl.teleport(new Location(getServer().getWorld(WORLD_BELOW), 
+						pl.getLocation().getX(), 
+						400, 
+						pl.getLocation().getZ(), 
+						pl.getLocation().getYaw(), 
+						pl.getLocation().getPitch()));
+				voidCounter.put(pl.getName().toLowerCase(), 0);
+				e.setDamage(0);
+			} else {
+				voidCounter.put(pl.getName().toLowerCase(), 1+voidCounter.get(pl.getName().toLowerCase()));
+				e.setDamage(0);
+			}
+		} 
+			
 		
 		// Make fall damage scale correctly
 		if (e.getDamage() >= 4 && e.getCause() == DamageCause.FALL) {
