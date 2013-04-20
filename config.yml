@@ -1,4 +1,10 @@
 # World with low gravity
 moonworld: world_the_end
-# World to drop to from moonworld
-dropworld: world
+# List of worlds in the order you want to drop through
+World list:
+  - world_the_end
+  - world
+  - world_nether
+  - world_the_end
+# Height to drop the player from when his world is changed
+Drop height: 300

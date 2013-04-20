@@ -1,6 +1,7 @@
 package fi.sweetmoon.moonifier;
 
 import java.util.HashMap;
+import java.util.List;
 
 import org.bukkit.craftbukkit.v1_5_R2.entity.CraftLivingEntity;
 
@@ -24,18 +25,20 @@ public class Moonifier extends JavaPlugin implements Listener {
 	public FileConfiguration config;
 	private static PotionEffect potef = new PotionEffect(PotionEffectType.JUMP, Integer.MAX_VALUE, 2);
 	private static String LOW_GRAVITY_WORLD;
-	private static String WORLD_BELOW;
 	HashMap<String,Integer> voidCounter = new HashMap<String,Integer>();
+	private static List<String> WORLD_LIST;
+	private static int DROP_HEIGHT;
 	
 	@Override
 	public void onEnable() {
 		this.plugin = this;
+		
+		// Config stuff
 		this.saveDefaultConfig();
 		this.config = this.getConfig();
-		getServer().getPluginManager().registerEvents(this, this);
-		LOW_GRAVITY_WORLD = config.getString("moonworld");
-		WORLD_BELOW = config.getString("dropworld");
+		loadConfVars();
 		
+		getServer().getPluginManager().registerEvents(this, this);
 		/*
 		 * No idea how ((CraftLivingEntity) player).getHandle().getDataWatcher().watch(8, Integer.valueOf(0)); actually works.
 		 * It's a hack to remove potion bubbles from players in "Moon"
@@ -103,36 +106,44 @@ public class Moonifier extends JavaPlugin implements Listener {
 	public void onEntityDamageEvent(EntityDamageEvent e) {
 		if (!(e.getEntity() instanceof Player)) {
 			return;
-		} else if (!(e.getEntity().getWorld().getName().equals(LOW_GRAVITY_WORLD))) {
-			return;
 		}
 		
 		Player pl = (Player) e.getEntity();
 		
-		if(e.getCause() == DamageCause.VOID) {
-			// If player is 50 blocks below the void, tp them to the world below
-			if(voidCounter.get(pl.getName().toLowerCase()).equals(25)) {
-				pl.teleport(new Location(getServer().getWorld(WORLD_BELOW), 
-						pl.getLocation().getX(), 
-						375, 
-						pl.getLocation().getZ(), 
-						pl.getLocation().getYaw(), 
-						pl.getLocation().getPitch()));
-				voidCounter.put(pl.getName().toLowerCase(), 0);
-				e.setCancelled(true);
-			} else {
-				voidCounter.put(pl.getName().toLowerCase(), 1+voidCounter.get(pl.getName().toLowerCase()));
-				e.setCancelled(true);
+		if(e.getCause() == DamageCause.VOID && WORLD_LIST.contains(e.getEntity().getWorld().getName())) {
+			// Check so that the world is not the last one in the list (we don't want to teleport if it is)
+			if(WORLD_LIST.indexOf(e.getEntity().getWorld().getName()) != (WORLD_LIST.size() - 1)) {
+				// If player is 25 blocks below the void, tp them to the world below
+				if(voidCounter.get(pl.getName().toLowerCase()).equals(25)) {
+					// Get the next world from the list, teleport player there (Could improve it a bit?)
+					pl.teleport(new Location(getServer().getWorld(WORLD_LIST.get(WORLD_LIST.indexOf(e.getEntity().getWorld().getName())+1)), 
+							pl.getLocation().getX(), 
+							DROP_HEIGHT, 
+							pl.getLocation().getZ(), 
+							pl.getLocation().getYaw(), 
+							pl.getLocation().getPitch()));
+					voidCounter.put(pl.getName().toLowerCase(), 0);
+					e.setCancelled(true);
+				} else {
+					voidCounter.put(pl.getName().toLowerCase(), 1+voidCounter.get(pl.getName().toLowerCase()));
+					e.setCancelled(true);
+				}
 			}
 		} 
 			
 		
 		// Make fall damage scale correctly
-		if (e.getDamage() >= 4 && e.getCause() == DamageCause.FALL) {
+		if (e.getEntity().getWorld().getName().equals(LOW_GRAVITY_WORLD) && e.getDamage() >= 4 && e.getCause() == DamageCause.FALL) {
 			e.setDamage((e.getDamage() - 4));
 		} else {
 			e.setDamage(0);
 		}
 	}
 	
+	// Function to load config, if we implement reload command in the future
+	private void loadConfVars() {
+		WORLD_LIST = config.getStringList("World list");
+		LOW_GRAVITY_WORLD = config.getString("moonworld");
+		DROP_HEIGHT = config.getInt("Drop height");
+	}
 }
