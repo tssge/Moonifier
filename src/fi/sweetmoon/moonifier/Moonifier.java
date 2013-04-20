@@ -28,6 +28,7 @@ public class Moonifier extends JavaPlugin implements Listener {
 	HashMap<String,Integer> voidCounter = new HashMap<String,Integer>();
 	private static List<String> WORLD_LIST;
 	private static int DROP_HEIGHT;
+	private static int VOID_DROP_HEIGHT;
 	
 	@Override
 	public void onEnable() {
@@ -42,6 +43,7 @@ public class Moonifier extends JavaPlugin implements Listener {
 		/*
 		 * No idea how ((CraftLivingEntity) player).getHandle().getDataWatcher().watch(8, Integer.valueOf(0)); actually works.
 		 * It's a hack to remove potion bubbles from players in "Moon"
+		 * Using scheduler for these kind of things is kind of bad practice. Maybe there's a better way to do this?
 		 */
 		plugin.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
 			public void run() {
@@ -92,6 +94,7 @@ public class Moonifier extends JavaPlugin implements Listener {
 		/*
 		 * Player doesn't actually respawn when this event is fired (Player object isn't created)
 		 * This hack is a necessary workaround to apply the potion effect (1 tick wait after respawn event)
+		 * Maybe there's a better way to do this?
 		 */
 		if (e.getPlayer().getWorld().getName().equals(LOW_GRAVITY_WORLD)) {
 		    plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
@@ -114,7 +117,7 @@ public class Moonifier extends JavaPlugin implements Listener {
 			// Check so that the world is not the last one in the list (we don't want to teleport if it is)
 			if(WORLD_LIST.indexOf(e.getEntity().getWorld().getName()) != (WORLD_LIST.size() - 1)) {
 				// If player is 25 blocks below the void, tp them to the world below
-				if(voidCounter.get(pl.getName().toLowerCase()).equals(25)) {
+				if(voidCounter.get(pl.getName().toLowerCase()).equals(VOID_DROP_HEIGHT)) {
 					// Get the next world from the list, teleport player there (Could improve it a bit?)
 					pl.teleport(new Location(getServer().getWorld(WORLD_LIST.get(WORLD_LIST.indexOf(e.getEntity().getWorld().getName())+1)), 
 							pl.getLocation().getX(), 
@@ -145,5 +148,6 @@ public class Moonifier extends JavaPlugin implements Listener {
 		WORLD_LIST = config.getStringList("World list");
 		LOW_GRAVITY_WORLD = config.getString("moonworld");
 		DROP_HEIGHT = config.getInt("Drop height");
+		VOID_DROP_HEIGHT = config.getInt("Void drop height");
 	}
 }

@@ -8,3 +8,5 @@ World list:
   - world_the_end
 # Height to drop the player from when his world is changed
 Drop height: 300
+# Blocks for the player to drop below void border until he gets teleported
+Void drop height: 25
