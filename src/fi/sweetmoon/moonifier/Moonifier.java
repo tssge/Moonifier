@@ -90,19 +90,20 @@ public class Moonifier extends JavaPlugin implements Listener {
 	@EventHandler(ignoreCancelled = true)
 	public void onDeath(PlayerRespawnEvent e) {
 		final Player pl = e.getPlayer();
+		final PlayerRespawnEvent event = e;
 		
 		/*
 		 * Player doesn't actually respawn when this event is fired (Player object isn't created)
 		 * This hack is a necessary workaround to apply the potion effect (1 tick wait after respawn event)
 		 * Maybe there's a better way to do this?
 		 */
-		if (e.getPlayer().getWorld().getName().equals(LOW_GRAVITY_WORLD)) {
-		    plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
-		        public void run() {             
-		            pl.addPotionEffect(potef, true);
-		        }
-		    }, 1);
-		}	
+	    plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
+	        public void run() {
+	        	if (event.getPlayer().getWorld().getName().equals(LOW_GRAVITY_WORLD)) {
+	        		pl.addPotionEffect(potef, true);
+	        	}
+	        }
+	    }, 1);	
 	}
 	
 	@EventHandler(ignoreCancelled = true)
