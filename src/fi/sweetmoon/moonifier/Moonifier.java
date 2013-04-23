@@ -99,6 +99,10 @@ public class Moonifier extends JavaPlugin implements Listener {
 		 */
 	    plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
 	        public void run() {
+	        	/*
+	        	 * Had to move the if here, because Bukkit's event is so bad that it won't event get the right world, so we need to add hacky delay
+	        	 * Yes, me mad
+	        	 */
 	        	if (event.getPlayer().getWorld().getName().equals(LOW_GRAVITY_WORLD)) {
 	        		pl.addPotionEffect(potef, true);
 	        	}
@@ -139,7 +143,7 @@ public class Moonifier extends JavaPlugin implements Listener {
 		// Make fall damage scale correctly
 		if (e.getEntity().getWorld().getName().equals(LOW_GRAVITY_WORLD) && e.getDamage() >= 4 && e.getCause() == DamageCause.FALL) {
 			e.setDamage((e.getDamage() - 4));
-		} else {
+		} else if(e.getEntity().getWorld().getName().equals(LOW_GRAVITY_WORLD) && e.getCause() == DamageCause.FALL) {
 			e.setDamage(0);
 		}
 	}
