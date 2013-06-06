@@ -90,7 +90,6 @@ public class Moonifier extends JavaPlugin implements Listener {
 	@EventHandler(ignoreCancelled = true)
 	public void onDeath(PlayerRespawnEvent e) {
 		final Player pl = e.getPlayer();
-		final PlayerRespawnEvent event = e;
 		
 		/*
 		 * Player doesn't actually respawn when this event is fired (Player object isn't created)
@@ -103,7 +102,7 @@ public class Moonifier extends JavaPlugin implements Listener {
 	        	 * Had to move the if here, because Bukkit's event is so bad that it won't event get the right world, so we need to add hacky delay
 	        	 * Yes, me mad
 	        	 */
-	        	if (event.getPlayer().getWorld().getName().equals(LOW_GRAVITY_WORLD)) {
+	        	if (pl.getWorld().getName().equals(LOW_GRAVITY_WORLD)) {
 	        		pl.addPotionEffect(potef, true);
 	        	}
 	        }
