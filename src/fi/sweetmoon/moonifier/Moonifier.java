@@ -16,6 +16,7 @@ import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -71,6 +72,24 @@ public class Moonifier extends JavaPlugin implements Listener {
 	public void onPlayerQuit(PlayerQuitEvent e) {
 		// Remove player so we don't cause memory leak or anything nasty
 		voidCounter.remove(e.getPlayer().getName().toLowerCase());
+	}
+	
+	@EventHandler(ignoreCancelled = true)
+	public void onPlayerTeleport(PlayerTeleportEvent e) {
+		final Player pl = e.getPlayer();
+		
+		if(!e.getTo().getWorld().equals(LOW_GRAVITY_WORLD)) {
+		    plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
+		        public void run() {
+		        	/*
+		        	 * Had to move the if here, because Bukkit's event is so bad that it won't event get the right world, so we need to add hacky delay
+		        	 * Yes, me mad
+		        	 */
+		        	if(pl.getWorld().equals(LOW_GRAVITY_WORLD))
+		        		pl.removePotionEffect(PotionEffectType.JUMP);
+		        }
+		    }, 1);	
+		}
 	}
 	
 	@EventHandler(ignoreCancelled = true)
