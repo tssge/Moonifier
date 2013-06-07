@@ -9,6 +9,7 @@ import org.bukkit.Location;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
@@ -73,21 +74,32 @@ public class Moonifier extends JavaPlugin implements Listener {
 		voidCounter.remove(e.getPlayer().getName().toLowerCase());
 	}
 	
-	@EventHandler(ignoreCancelled = true)
-	public void onPlayerWorldChange(PlayerChangedWorldEvent e) {
-		
-		// Add potion effect when player comes to "Moon"
-		if (e.getPlayer().getWorld().getName().equals(LOW_GRAVITY_WORLD)) {
-			e.getPlayer().addPotionEffect(potef, true);
-		}
-		
+	/*
+	 * Multiverse Invetories listens on this event at priority LOW
+	 * We need to get the event first to cancel the potion effect, 
+	 * so that it doesn't pass to worlds we don't want it to pass to
+	 */
+	@EventHandler(ignoreCancelled=true, priority=EventPriority.LOWEST)
+	public void PlayerWorldChangeLowest(PlayerChangedWorldEvent e) {
 		// Remove potion effect when player is not on "Moon"
 		if (e.getFrom().getName().equals(LOW_GRAVITY_WORLD)) {
 			e.getPlayer().removePotionEffect(PotionEffectType.JUMP);
 		}
 	}
 	
-	@EventHandler(ignoreCancelled = true)
+	/*
+	 * We want to apply the potion effect after Multiverse Invetories
+	 * which listens on this event at priority LOW
+	 */
+	@EventHandler(ignoreCancelled=true, priority=EventPriority.NORMAL)
+	public void PlayerWorldChangeNormal(PlayerChangedWorldEvent e) {
+		// Add potion effect when player comes to "Moon"
+		if (e.getPlayer().getWorld().getName().equals(LOW_GRAVITY_WORLD)) {
+			e.getPlayer().addPotionEffect(potef, true);
+		}
+	}
+	
+	@EventHandler(ignoreCancelled=true)
 	public void onDeath(PlayerRespawnEvent e) {
 		final Player pl = e.getPlayer();
 		
