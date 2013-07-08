@@ -46,14 +46,14 @@ public class Moonifier extends JavaPlugin implements Listener {
 		 * It's a hack to remove potion bubbles from players in "Moon"
 		 * Using scheduler for these kind of things is kind of bad practice. Maybe there's a better way to do this?
 		 */
-		plugin.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
+/*		plugin.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
 			public void run() {
 		      for (Player player : Moonifier.this.getServer().getOnlinePlayers())
 		    	  if (player.getWorld().getName().equals(LOW_GRAVITY_WORLD)) {
 		          	((CraftLivingEntity) player).getHandle().getDataWatcher().watch(8, Integer.valueOf(0));
 		    	  }
 			}
-		}, 4L, 4L);
+		}, 4L, 4L);*/
 	}
 	
 	@EventHandler(ignoreCancelled = true)
