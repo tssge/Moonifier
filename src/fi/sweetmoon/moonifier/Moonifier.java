@@ -40,20 +40,23 @@ public class Moonifier extends JavaPlugin implements Listener {
 		this.config = this.getConfig();
 		loadConfVars();
 		
+		// Register this class' events
 		getServer().getPluginManager().registerEvents(this, this);
 		/*
-		 * No idea how ((CraftLivingEntity) player).getHandle().getDataWatcher().watch(8, Integer.valueOf(0)); actually works.
-		 * It's a hack to remove potion bubbles from players in "Moon"
-		 * Using scheduler for these kind of things is kind of bad practice. Maybe there's a better way to do this?
+		 * The following task removes potion bubbles from all players in the world matching LOW_GRAVITY_WORLD.
+		 * It works by setting the potion effect ambience flag to 0, which is found at index 8. This packet is then
+		 * sent per every 4 ticks to all players in the moon. So it kind of "restarts" the potion animation, which
+		 * has a clientside delay on starting, so bubbles never even appear due to the delay being started all over
+		 * and over again.
 		 */
-/*		plugin.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
+		plugin.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
 			public void run() {
 		      for (Player player : Moonifier.this.getServer().getOnlinePlayers())
 		    	  if (player.getWorld().getName().equals(LOW_GRAVITY_WORLD)) {
-		          	((CraftLivingEntity) player).getHandle().getDataWatcher().watch(8, Integer.valueOf(0));
+		          	((CraftLivingEntity) player).getHandle().getDataWatcher().watch(8, new Byte((byte) 0));
 		    	  }
 			}
-		}, 4L, 4L);*/
+		}, 0L, 4L);
 	}
 	
 	@EventHandler(ignoreCancelled = true)
@@ -112,7 +115,6 @@ public class Moonifier extends JavaPlugin implements Listener {
 	        public void run() {
 	        	/*
 	        	 * Had to move the if here, because Bukkit's event is so bad that it won't event get the right world, so we need to add hacky delay
-	        	 * Yes, me mad
 	        	 */
 	        	if (pl.getWorld().getName().equals(LOW_GRAVITY_WORLD)) {
 	        		pl.addPotionEffect(potef, true);
