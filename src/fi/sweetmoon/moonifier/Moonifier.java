@@ -53,6 +53,11 @@ public class Moonifier extends JavaPlugin implements Listener {
 			public void run() {
 		      for (Player player : Moonifier.this.getServer().getOnlinePlayers())
 		    	  if (player.getWorld().getName().equals(LOW_GRAVITY_WORLD)) {
+		    		  /*
+		    		   * Seems messy. First cast player to CraftLivingEntity (CraftBukkit entity instead of Bukkit API,
+		    		   * so we have access to OBC functions. Then we get it's handle, which is NMS EntityPlayer, get
+		    		   * the datawatcher and set value at index 8 to byte 0. Index 8 is potion effect ambience.
+		    		   */
 		          	((CraftLivingEntity) player).getHandle().getDataWatcher().watch(8, new Byte((byte) 0));
 		    	  }
 			}
